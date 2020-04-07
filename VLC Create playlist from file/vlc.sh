@@ -1,7 +1,7 @@
 #!/bin/bash
 
 shopt -s extglob
-extensions='@(avi|mp4|mkv|m4v|mov|mpg|mpeg|wmv|ogg|flac|m4a|mp3|wav)'  # list of extensions for searching in current directory
+extensions='@(avi|mp4|mkv|m4v|mov|mpg|mpeg|wmv|ogg|flac|m4a|mp3|wav|3gp)'  # list of extensions for searching in current directory
 
 # kill other instances of vlc to keep playlist clean (one-instance mode)
 killall vlc; sleep 0.1
@@ -31,4 +31,10 @@ ls "${dirname}"/*.${extensions} -1 | tail -n$(($n-$pos+1)) >  /tmp/vlc.m3u
 ls "${dirname}"/*.${extensions} -1 | head -n$(($pos-1))    >> /tmp/vlc.m3u
 
 # launch playlist
-IFS=$'\n'; read -d '' -r -a files < /tmp/vlc.m3u; vlc "${files[@]}"
+ARGS=""
+NB=$(( $n - $(ls "${dirname}"/*.${extensions} -1 | grep -e '\.mkv' -e '\.mp4' | wc -l) ))
+if [ "$NB" -ge 15 ]; then
+	ARGS="--no-play-and-pause"
+fi
+
+IFS=$'\n'; read -d '' -r -a files < /tmp/vlc.m3u; vlc $ARGS "${files[@]}"
