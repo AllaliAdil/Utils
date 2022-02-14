@@ -13,10 +13,15 @@ $filename = Resolve-Path -LiteralPath $filename
 $dirname = Split-Path -LiteralPath $filename
 $basename = Get-ChildItem -LiteralPath $filename | ForEach-Object { $_.Name }
 
+# get all files in directory and apply natural sort
+$filelist_not_sorted = Get-ChildItem -File -LiteralPath $dirname | ForEach-Object { $_.Name } | Select-String -Pattern $Extensions | ForEach-Object { $_.Line }
+
+$ToNatural = { [regex]::Replace($_, '\d+', { $args[0].Value.PadLeft(20) }) }
+$filelist = $filelist_not_sorted | Sort-Object $ToNatural
+
 # count files with matching extension, and get position of filename in current directory
-$filelist = Get-ChildItem -File -LiteralPath $dirname | ForEach-Object { $_.Name } | Select-String -Pattern $Extensions | ForEach-Object { $_.Line }
 $count = $($filelist | Measure-Object -Line).Lines
-$position = $filelist | Select-String -Pattern $basename | ForEach-Object { $_.LineNumber }
+$position = [array]::indexof($filelist,$basename)+1
 
 # if the filename does not have one of the extension above, launch vlc with provided filename
 if ([string]::IsNullOrEmpty($position)) {& $vlcPath $filename; exit}
